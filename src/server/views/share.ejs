@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Simple Sharing File</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <script type="module">
+
+        const data = '<%- JSON.stringify(data) %>'
+        const props = JSON.parse(data)
+        window.props = props
+    </script>
+    <script type="module" src="/socket.io/socket.io.js"></script>
+    <script type="module" src="scripts/share.js"></script>
+</head>
+
+<body>
+    <div id="share"></div>
+</body>
+
+</html>
