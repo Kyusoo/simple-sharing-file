@@ -58,8 +58,12 @@ module.exports = {
                     from: `${SRC}/renderer/index.html`
                 },
                 {
-                    from: `${SRC}/server/views`,
-                    to: `${DIST}/views`
+                    from: `${SRC}/server/views/share.ejs`,
+                    to: `${DIST}/views/share.ejs`
+                },
+                {
+                    from: `${SRC}/server/views/close.ejs`,
+                    to: `${DIST}/views/close.ejs`
                 }
             ]
         }),
