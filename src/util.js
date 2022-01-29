@@ -20,6 +20,10 @@ class Util {
             number = (size / (1024 ** 3)).toFixed(2)
             unit = 'GB'
         }
+        else if (size < (1024 ** 5)) {
+            number = (size / (1024 ** 4)).toFixed(2)
+            unit = 'TB'
+        }
 
         return { number: Number(number), unit }
     }

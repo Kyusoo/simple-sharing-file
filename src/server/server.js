@@ -4,6 +4,7 @@ const path = require('path')
 const express = require('express')
 const favicon = require('serve-favicon')
 const multer = require('multer')
+const checkDiskSpace = require('check-disk-space').default
 const Util = require('../util')
 const Socket = require('./socket')
 const Observer = require('./observer')
@@ -65,17 +66,17 @@ class Server {
         this.exp.use('/scripts', express.static(path.resolve(__dirname, 'scripts')))
 
         this.exp.use(express.json())
-        this.exp.use(express.urlencoded({extended:false}))
+        this.exp.use(express.urlencoded({ extended: false }))
     }
 
     #setRoutes() {
 
-        const storage  = multer.diskStorage({
-            destination : (req, file, cb) => {
-              cb(null, this.application.state.sharePath);
+        const storage = multer.diskStorage({
+            destination: (req, file, cb) => {
+                cb(null, this.application.state.sharePath);
             },
-            filename : (req, file, cb) => {
-              cb(null, `${file.originalname}`);
+            filename: (req, file, cb) => {
+                cb(null, `${file.originalname}`);
             },
         });
 
@@ -83,8 +84,8 @@ class Server {
             fieldNameSize: 200, // 필드명 사이즈 최대값 (기본값 100bytes)
             filedSize: 1024 * 1024, // 필드 사이즈 값 설정 (기본값 1MB)
             fields: 2, // 파일 형식이 아닌 필드의 최대 개수 (기본 값 무제한)
-            fileSize : 16777216, //multipart 형식 폼에서 최대 파일 사이즈(bytes) "16MB 설정" (기본 값 무제한)
-            files : 10, //multipart 형식 폼에서 파일 필드 최대 개수 (기본 값 무제한)
+            fileSize: 16777216, //multipart 형식 폼에서 최대 파일 사이즈(bytes) "16MB 설정" (기본 값 무제한)
+            files: 10, //multipart 형식 폼에서 파일 필드 최대 개수 (기본 값 무제한)
         }
 
         const fileFilter = (req, file, cb) => {
@@ -110,21 +111,35 @@ class Server {
         })
 
         this.exp.get('/', (req, res) => {
-                res.redirect('/share')
-            })
+            res.redirect('/share')
+        })
             .get('/share', (req, res) => {
 
-                if(this.application.state.isServerOn) {
-                    const host = {
-                        name: os.hostname(),
-                        username: os.userInfo().username
-                    }
+                if (this.application.state.isServerOn) {
 
-                    const secure = this.application.state.server.secure ? true : false
-                    const files = this.getFilesInDirectory(this.application.state.sharePath)
-                    const data = { host, secure, files: (secure ? [] : files) }
+                    checkDiskSpace(this.application.state.sharePath).then(diskSpace => {
+                        const disk = {
+                            free: Util.calcFileSize(diskSpace.free),
+                            total: Util.calcFileSize(diskSpace.size)
+                        }
 
-                    res.render('share', { data })
+
+                        const host = {
+                            name: os.hostname(),
+                            username: os.userInfo().username,
+                            disk
+                        }
+
+                        const secure = this.application.state.server.secure ? true : false
+                        const files = this.getFilesInDirectory(this.application.state.sharePath)
+                        const data = { host, secure, files: (secure ? [] : files) }
+
+                        res.render('share', { data })
+                    }).catch(e => {
+                        console.error(e)
+                        res.json(500).send(e.toString())
+                    })
+
                 }
                 else {
                     res.render('close')
@@ -135,22 +150,22 @@ class Server {
                 const secure = this.application.state.server.secure ? true : false
 
                 console.log(`[POST] /secure : ${secure}`)
-                res.status(200).json({'secure': secure})
+                res.status(200).json({ 'secure': secure })
             })
             .post('/auth', (req, res) => {
                 console.log(`[POST] /auth [REQ] ${JSON.stringify(req.body)}`)
 
                 const password = req.body.password
 
-                if(!this.application.state.serverPassword || this.application.state.serverPassword.length === 0) {
-                    res.json({'auth': true})
+                if (!this.application.state.serverPassword || this.application.state.serverPassword.length === 0) {
+                    res.json({ 'auth': true })
                 }
                 else {
-                    if(this.application.state.serverPassword != password) {
-                        res.json({'auth': false, 'message':'Wrong Password'})
+                    if (this.application.state.serverPassword != password) {
+                        res.json({ 'auth': false, 'message': 'Wrong Password' })
                     }
                     else {
-                        res.json({'auth': true, 'message': 'PASS'})
+                        res.json({ 'auth': true, 'message': 'PASS' })
                         this.sendFileList()
                     }
                 }
@@ -163,11 +178,11 @@ class Server {
                 const file = path.resolve(this.application.state.sharePath, filename)
 
                 try {
-                    if(fs.existsSync(file)) {
+                    if (fs.existsSync(file)) {
                         res.status(200).download(file)
                     }
                     else {
-                        res.status(500).json({ 'result':'FAIL', 'message':`File doesn't exist`})
+                        res.status(500).json({ 'result': 'FAIL', 'message': `File doesn't exist` })
                     }
                 } catch (e) {
                     console.log(e)
@@ -179,7 +194,7 @@ class Server {
 
                 console.log(`[POST] /upload [REQ] ${JSON.stringify(req.body)}`)
 
-                const result = { 'result': 'OK', 'message':'Upload Successful' }
+                const result = { 'result': 'OK', 'message': 'Upload Successful' }
                 res.status(200).json(result)
             })
 
@@ -211,8 +226,8 @@ class Server {
         this.server.on('error', error => {
             console.log(`[Server][Error] Code=${error.code}`)
 
-            if(error.code === 'EADDRINUSE') {
-                this.application.emitError({type: 'server', data: 'EADDRINUSE'})
+            if (error.code === 'EADDRINUSE') {
+                this.application.emitError({ type: 'server', data: 'EADDRINUSE' })
             }
 
             this.application.emitState({ type: 'isServerOn', data: false })
@@ -233,15 +248,15 @@ class Server {
 
         console.log(`[Server] ${JSON.stringify(data)}`)
 
-        if(data?.secure !== undefined) {
-            this.socket.sendToClients({type: 'secure', data: data.secure})
-            if(data.secure) this.sendFileList()
+        if (data?.secure !== undefined) {
+            this.socket.sendToClients({ type: 'secure', data: data.secure })
+            if (data.secure) this.sendFileList()
         }
     }
 
     sendFileList() {
         const files = this.getFilesInDirectory(this.application.state.sharePath)
-        this.socket.sendToClients({type: 'files', data: files})
+        this.socket.sendToClients({ type: 'files', data: files })
     }
 
 }

@@ -11,7 +11,8 @@ const externalModules = {
     'electron': 'commonjs electron',
     'express': 'commonjs express',
     'socket.io': 'commonjs socket.io',
-    'chokidar': 'commonjs chokidar'
+    'chokidar': 'commonjs chokidar',
+    'check-disk-space': 'commonjs check-disk-space'
 }
 
 module.exports = {

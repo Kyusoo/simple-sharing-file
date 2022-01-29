@@ -2,7 +2,7 @@ import React, { useState, useEffect, useReducer } from 'react'
 import ReactDOM from 'react-dom'
 import { Alert, Box, Button, Container, Divider, Grid, Paper, Snackbar, TextField, Tab, Tabs, Typography } from '@mui/material'
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
-import { Dialog, DialogActions, DialogContent, DialogTitle} from '@mui/material'
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material'
 import { TabPanel, applyTabProps } from '../../mui-components/TabPanel'
 
 import IconSearch from '@mui/icons-material/Search'
@@ -19,10 +19,10 @@ const INITIAL_STATE = {
 }
 
 function reducer(state, action) {
-    switch(action.type) {
+    switch (action.type) {
         case 'setSearch':
             sessionStorage.setItem('search', action.search)
-            return {...state, search: action.search}
+            return { ...state, search: action.search }
     }
 }
 
@@ -38,14 +38,14 @@ const App = () => {
         open: false,
         severity: '',
         message: '',
-        anchorOrigin : {
+        anchorOrigin: {
             vertical: 'top', horizontal: 'center'
         },
-        handleCloseSnackbar : (event, reason) => {
+        handleCloseSnackbar: (event, reason) => {
             if (reason === 'clickaway') {
                 return
             }
-            setSnackBar({...snackbar, open:false})
+            setSnackBar({ ...snackbar, open: false })
         }
     })
     const [password, setPassword] = useState({
@@ -58,7 +58,7 @@ const App = () => {
         open: false
     })
 
-    const inputFileHandler = ({target:{files}}) => {
+    const inputFileHandler = ({ target: { files } }) => {
 
         const fileList = Array.from(files)
 
@@ -79,11 +79,11 @@ const App = () => {
 
         xhrUpload.upload.onloadstart = e => {
             setIsUploading(true)
-            setDialog({...dialog, open:true})
+            setDialog({ ...dialog, open: true })
         }
 
         xhrUpload.upload.onprogress = e => {
-            if( e.lengthComputable ) {
+            if (e.lengthComputable) {
                 const percentComplete = Math.floor(e.loaded / e.total * 100);
                 setProgress(percentComplete)
             } else {
@@ -94,7 +94,7 @@ const App = () => {
         xhrUpload.upload.onabort = () => {
             setProgress(0)
             setIsUploading(false)
-            setSnackBar({...snackbar, severity: 'error', open:true, message:'Upload cancelled'})
+            setSnackBar({ ...snackbar, severity: 'error', open: true, message: 'Upload cancelled' })
         }
 
         xhrUpload.onerror = error => {
@@ -105,7 +105,7 @@ const App = () => {
             const data = JSON.parse(e.target.response)
             console.log(data)
             if (data?.result === 'OK') {
-                setSnackBar({...snackbar, severity: 'success', open:true, message:data?.message})
+                setSnackBar({ ...snackbar, severity: 'success', open: true, message: data?.message })
             }
             else {
                 throw new Error('Fail to Upload file')
@@ -121,16 +121,16 @@ const App = () => {
     }
 
     const uploadCancelHandler = () => {
-        if(window.xhrUpload) {
+        if (window.xhrUpload) {
             window.xhrUpload.abort()
             window.xhrUpload = null
         }
 
         setUploadFiles([])
-        setDialog({...dialog, open:false})
+        setDialog({ ...dialog, open: false })
     }
 
-    const downloadHandler = ({target}) => {
+    const downloadHandler = ({ target }) => {
         const filename = target.firstChild.textContent
         const url = `${location.origin}/download`
 
@@ -140,7 +140,7 @@ const App = () => {
 
         xhr.onload = e => {
             try {
-                if(e.target.status === 200) {
+                if (e.target.status === 200) {
                     const blob = e.target.response
 
                     let a = document.createElement("a");
@@ -164,7 +164,7 @@ const App = () => {
                     reader.onload = () => {
                         const result = JSON.parse(reader.result)
                         console.log(result)
-                        setSnackBar({...snackbar, severity: 'error', open:true, message:result.message})
+                        setSnackBar({ ...snackbar, severity: 'error', open: true, message: result.message })
                     }
                     reader.readAsText(e.target.response)
                 }
@@ -182,10 +182,10 @@ const App = () => {
         xhr.send(JSON.stringify(data))
     }
 
-    const passwordChangeHandler = ({target:{value}}) => {
-        setPassword({...password, value})
+    const passwordChangeHandler = ({ target: { value } }) => {
+        setPassword({ ...password, value })
 
-        const data = {password: value}
+        const data = { password: value }
         const xhr = new XMLHttpRequest()
 
         xhr.timeout = 250
@@ -197,9 +197,9 @@ const App = () => {
             let error = false
             let label = ''
 
-            if(value?.length > 0) {
+            if (value?.length > 0) {
                 label = data.message
-                if(data.auth === false) {
+                if (data.auth === false) {
                     error = true
                 }
             }
@@ -208,7 +208,7 @@ const App = () => {
                 label = 'Server Password'
             }
 
-            setPassword({...password, auth, error, label})
+            setPassword({ ...password, auth, error, label })
         }
 
         xhr.ontimeout = e => {
@@ -222,22 +222,20 @@ const App = () => {
 
     const filterFileList = (value) => {
 
-        if(!value || value.length === 0) {
+        if (!value || value.length === 0) {
             setFileList(props.files)
         }
         else {
-            setFileList( props.files.filter(file => file.name.includes(value) === true) )
+            setFileList(props.files.filter(file => file.name.includes(value) === true))
         }
     }
 
-    const searchChangeHandler = ({target:{value}}) => {
-        dispatch({type: 'setSearch', search:value})
+    const searchChangeHandler = ({ target: { value } }) => {
+        dispatch({ type: 'setSearch', search: value })
         filterFileList(value)
     }
 
     useEffect(() => {
-        console.log(props)
-
         setFileList(props.files)
         setSecure(props.secure)
 
@@ -250,12 +248,12 @@ const App = () => {
             socket.on('message', msg => {
                 console.log(`[Socket][MSG] ${JSON.stringify(msg)}`)
 
-                if(msg.type === 'files') {
+                if (msg.type === 'files') {
                     props.files = msg.data
                     const search = sessionStorage.getItem('search')
                     filterFileList(search)
                 }
-                else if(msg.type === 'secure') {
+                else if (msg.type === 'secure') {
                     setSecure(msg.data)
                 }
             })
@@ -274,107 +272,108 @@ const App = () => {
         <Container>
             <Typography variant="h4">Simple Sharing File</Typography>
             <Typography variant="h5">HOST : {props.host.name} ({props.host.username})</Typography>
+            <Typography variant="h5">Disk : {props.host.disk.free.number} {props.host.disk.free.unit} / {props.host.disk.total.number} {props.host.disk.total.unit}</Typography>
 
-            { secure &&
-            <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
-                <IconPassword sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
-                <TextField id="inputPassword" type="password" label={password.label} error={password.error} size="small" variant="standard" onChange={passwordChangeHandler}>{password.value}</TextField>
-            </Box>
+            {secure &&
+                <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <IconPassword sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+                    <TextField id="inputPassword" type="password" label={password.label} error={password.error} size="small" variant="standard" onChange={passwordChangeHandler}>{password.value}</TextField>
+                </Box>
             }
 
-            { ((!secure) || (secure && password.auth)) &&
-            <Box sx={{ width: '100%', marginTop:'20px' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={tabIndex} onChange={(evt, newValue) => setTabIndex(newValue)} aria-label="Application Tabs">
-                        <Tab label="Download" {...applyTabProps(0)} />
-                        <Tab label="Upload"   {...applyTabProps(1)} />
-                    </Tabs>
-                </Box>
+            {((!secure) || (secure && password.auth)) &&
+                <Box sx={{ width: '100%', marginTop: '20px' }}>
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                        <Tabs value={tabIndex} onChange={(evt, newValue) => setTabIndex(newValue)} aria-label="Application Tabs">
+                            <Tab label="Download" {...applyTabProps(0)} />
+                            <Tab label="Upload"   {...applyTabProps(1)} />
+                        </Tabs>
+                    </Box>
 
-                <ShareContext.Provider value={{ state, dispatch }}>
-                    {
-                        // Download Tab
-                    }
-                    <TabPanel value={tabIndex} index={0}>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-end', marginBottom:'20px' }}>
-                            <IconSearch sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
-                            <TextField id="inputSearch" label="Search" size="small" variant="standard" fullWidth={true} onChange={searchChangeHandler} value={state.search} />
-                        </Box>
-                        <TableContainer component={Paper}>
-                            <Table sx={{minWidth: 800}} size="small">
-                                <TableHead sx={{backgroundColor:'#EEE'}}>
-                                    <TableRow>
-                                        <TableCell sx={{fontWeight:'bold'}}>File</TableCell>
-                                        <TableCell sx={{fontWeight:'bold'}} align="right">Size</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {fileList.map( (file, idx) => (
-                                        <TableRow sx={{cursor:'pointer'}} hover key={idx} onClick={downloadHandler}>
-                                            <TableCell>{file.name}</TableCell>
-                                            <TableCell align="right">{file.sizeInfo.number} {file.sizeInfo.unit}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </TabPanel>
-
-                    {
-                        // Upload Tab
-                    }
-                    <TabPanel value={tabIndex} index={1}>
-
-                        <Grid container spacing={1} direction="row" alignItems="center" justifyContent="space-between">
-                            <Grid item>
-                                <form id="formFile" method="POST" action="/upload" encType="multipart/form-data">
-                                    <label htmlFor="inputFile" style={{border:'1px solid skyblue', color:'skyblue', borderRadius:'4px', padding:'4px 20px', cursor:'pointer'}}>File Select</label>
-                                    <input id="inputFile" type="file" name="upload" multiple onChange={inputFileHandler} style={{display:"none"}} />
-                                </form>
-                            </Grid>
-                            <Grid item><Button disabled={uploadFiles.length === 0} variant="outlined" size="small" onClick={uploadHandler}>Upload</Button></Grid>
-                        </Grid>
-
-                        {uploadFiles.length > 0 &&
-                        <Box>
-                            <Divider sx={{margin:'10px 0px'}} />
+                    <ShareContext.Provider value={{ state, dispatch }}>
+                        {
+                            // Download Tab
+                        }
+                        <TabPanel value={tabIndex} index={0}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-end', marginBottom: '20px' }}>
+                                <IconSearch sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+                                <TextField id="inputSearch" label="Search" size="small" variant="standard" fullWidth={true} onChange={searchChangeHandler} value={state.search} />
+                            </Box>
                             <TableContainer component={Paper}>
-                                <Table sx={{minWidth: 400}} size="small">
-                                    <TableHead sx={{backgroundColor:'#EEE'}}>
+                                <Table sx={{ minWidth: 800 }} size="small">
+                                    <TableHead sx={{ backgroundColor: '#EEE' }}>
                                         <TableRow>
-                                            <TableCell sx={{fontWeight:'bold'}} align="left">File</TableCell>
-                                            <TableCell sx={{fontWeight:'bold'}} align="right">Size</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }}>File</TableCell>
+                                            <TableCell sx={{ fontWeight: 'bold' }} align="right">Size</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                            {uploadFiles.map( (file, idx) => (
-                                                <TableRow key={`upload-file-${idx}`}>
-                                                    <TableCell>{file.name}</TableCell>
-                                                    <TableCell align="right">{`${file.sizeInfo.number} ${file.sizeInfo.unit}`}</TableCell>
-                                                </TableRow>
-                                            ))}
+                                        {fileList.map((file, idx) => (
+                                            <TableRow sx={{ cursor: 'pointer' }} hover key={idx} onClick={downloadHandler}>
+                                                <TableCell>{file.name}</TableCell>
+                                                <TableCell align="right">{file.sizeInfo.number} {file.sizeInfo.unit}</TableCell>
+                                            </TableRow>
+                                        ))}
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                        </Box>
-                        }
+                        </TabPanel>
 
-                        { isUploading &&
-                        <Dialog open={dialog.open}>
-                            <DialogTitle>{"File Upload"}</DialogTitle>
-                            <DialogContent>
-                                <Box sx={{minWidth: 400}}>
-                                    <LinearProgressWithValue value={progress} />
-                                </Box>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button onClick={uploadCancelHandler} disabled={!isUploading} size="small" variant="outlined">Cancel</Button>
-                            </DialogActions>
-                        </Dialog>
+                        {
+                            // Upload Tab
                         }
-                    </TabPanel>
-                </ShareContext.Provider>
-            </Box>
+                        <TabPanel value={tabIndex} index={1}>
+
+                            <Grid container spacing={1} direction="row" alignItems="center" justifyContent="space-between">
+                                <Grid item>
+                                    <form id="formFile" method="POST" action="/upload" encType="multipart/form-data">
+                                        <label htmlFor="inputFile" style={{ border: '1px solid skyblue', color: 'skyblue', borderRadius: '4px', padding: '4px 20px', cursor: 'pointer' }}>File Select</label>
+                                        <input id="inputFile" type="file" name="upload" multiple onChange={inputFileHandler} style={{ display: "none" }} />
+                                    </form>
+                                </Grid>
+                                <Grid item><Button disabled={uploadFiles.length === 0} variant="outlined" size="small" onClick={uploadHandler}>Upload</Button></Grid>
+                            </Grid>
+
+                            {uploadFiles.length > 0 &&
+                                <Box>
+                                    <Divider sx={{ margin: '10px 0px' }} />
+                                    <TableContainer component={Paper}>
+                                        <Table sx={{ minWidth: 400 }} size="small">
+                                            <TableHead sx={{ backgroundColor: '#EEE' }}>
+                                                <TableRow>
+                                                    <TableCell sx={{ fontWeight: 'bold' }} align="left">File</TableCell>
+                                                    <TableCell sx={{ fontWeight: 'bold' }} align="right">Size</TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {uploadFiles.map((file, idx) => (
+                                                    <TableRow key={`upload-file-${idx}`}>
+                                                        <TableCell>{file.name}</TableCell>
+                                                        <TableCell align="right">{`${file.sizeInfo.number} ${file.sizeInfo.unit}`}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Box>
+                            }
+
+                            {isUploading &&
+                                <Dialog open={dialog.open}>
+                                    <DialogTitle>{"File Upload"}</DialogTitle>
+                                    <DialogContent>
+                                        <Box sx={{ minWidth: 400 }}>
+                                            <LinearProgressWithValue value={progress} />
+                                        </Box>
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button onClick={uploadCancelHandler} disabled={!isUploading} size="small" variant="outlined">Cancel</Button>
+                                    </DialogActions>
+                                </Dialog>
+                            }
+                        </TabPanel>
+                    </ShareContext.Provider>
+                </Box>
             }
 
             <Snackbar open={snackbar.open} onClose={snackbar.handleCloseSnackbar} autoHideDuration={1500} anchorOrigin={snackbar.anchorOrigin}>
