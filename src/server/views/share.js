@@ -131,55 +131,12 @@ const App = () => {
     }
 
     const downloadHandler = ({ target }) => {
-        const filename = target.firstChild.textContent
-        const url = `${location.origin}/download`
+        const fileName = target.firstChild.textContent
+        const url = `${location.origin}/download/${fileName}`
 
-        const xhr = new XMLHttpRequest()
-
-        console.log(`[Down] filename[${filename}] / url[${url}]`)
-
-        xhr.onload = e => {
-            try {
-                if (e.target.status === 200) {
-                    const blob = e.target.response
-
-                    let a = document.createElement("a");
-                    a.style = "display: none";
-                    document.body.appendChild(a);
-                    //Create a DOMString representing the blob
-                    //and point the link element towards it
-                    let url = window.URL.createObjectURL(blob);
-                    a.href = url;
-                    a.download = filename;
-                    //programatically click the link to trigger the download
-                    a.click();
-                    //release the reference to the file by revoking the Object URL
-                    window.URL.revokeObjectURL(url);
-
-                    document.body.removeChild(a)
-                }
-                else {
-                    console.log(e.target.response)
-                    const reader = new FileReader()
-                    reader.onload = () => {
-                        const result = JSON.parse(reader.result)
-                        console.log(result)
-                        setSnackBar({ ...snackbar, severity: 'error', open: true, message: result.message })
-                    }
-                    reader.readAsText(e.target.response)
-                }
-            } catch (error) {
-                console.log(error)
-            } finally {
-
-            }
-        }
-
-        const data = { filename }
-        xhr.responseType = 'blob'
-        xhr.open('POST', url)
-        xhr.setRequestHeader("Content-Type", "application/json")
-        xhr.send(JSON.stringify(data))
+        const link = document.createElement('a')
+        link.href = url
+        link.click()
     }
 
     const passwordChangeHandler = ({ target: { value } }) => {
@@ -362,7 +319,7 @@ const App = () => {
                                 <Dialog open={dialog.open}>
                                     <DialogTitle>{"File Upload"}</DialogTitle>
                                     <DialogContent>
-                                        <Box sx={{ minWidth: 400 }}>
+                                        <Box sx={{ width: { xs: 200, sm: 200, md: 300, lg: 400, xl: 500 } }}>
                                             <LinearProgressWithValue value={progress} />
                                         </Box>
                                     </DialogContent>

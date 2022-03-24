@@ -156,39 +156,44 @@ class Server {
                 console.log(`[POST] /auth [REQ] ${JSON.stringify(req.body)}`)
 
                 const password = req.body.password
+                let auth = false
 
                 if (!this.application.state.serverPassword || this.application.state.serverPassword.length === 0) {
-                    res.json({ 'auth': true })
+                    auth = true
+                    res.json({ auth })
                 }
                 else {
                     if (this.application.state.serverPassword != password) {
-                        res.json({ 'auth': false, 'message': 'Wrong Password' })
+
+                        res.json({ auth, 'message': 'Wrong Password' })
                     }
                     else {
-                        res.json({ 'auth': true, 'message': 'PASS' })
+                        auth = true
+                        res.json({ auth, 'message': 'PASS' })
                         this.sendFileList()
                     }
                 }
+
+                this.auth = auth
             })
-            .post('/download', (req, res) => {
+            .get('/download/:fileName', (req, res) => {
 
-                console.log(`[POST] /download [REQ] ${JSON.stringify(req.body)}`)
+                const fileName = req.params.fileName
+                console.log(`[GET] /download [FileName] ${fileName}`)
 
-                const filename = req.body.filename
-                const file = path.resolve(this.application.state.sharePath, filename)
+                const file = path.resolve(this.application.state.sharePath, fileName)
 
                 try {
                     if (fs.existsSync(file)) {
                         res.status(200).download(file)
                     }
                     else {
-                        res.status(500).json({ 'result': 'FAIL', 'message': `File doesn't exist` })
+                        res.status(404).send('Not Found')
                     }
                 } catch (e) {
-                    console.log(e)
+                    console.log(e);
                     res.send(e.toString())
                 }
-
             })
             .post('/upload', upload.array('upload'), (req, res) => {
 
