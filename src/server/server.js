@@ -46,11 +46,13 @@ class Server {
             const fstat = fs.statSync(`${targetPath}/${file}`)
             const sizeInfo = Util.calcFileSize(fstat.size)
 
-            fileArray.push({
-                name: file,
-                size: fstat.size,
-                sizeInfo,
-            })
+            if (fstat.isFile()) {
+                fileArray.push({
+                    name: file,
+                    size: fstat.size,
+                    sizeInfo,
+                })
+            }
         })
 
         const files = fileArray.filter(fileInfo => ignoreList.includes(fileInfo.name) === false)
