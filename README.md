@@ -2,4 +2,4 @@
 Simple Sharing File
 
 ## Instruction
-https://sundry-record.tistory.com/entry/App-Simple-Sharing-File
+https://all--the--things.blogspot.com/2022/04/app-simple-sharing-file-download-install.html
